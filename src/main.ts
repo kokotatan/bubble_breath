@@ -6,12 +6,27 @@ const ar = new ARController();
 (async () => {
   // サポート状況を案内
   const isHttps = location.protocol === "https:";
+  const userAgent = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+  const isAndroid = /Android/.test(userAgent);
+  const isChrome = /Chrome/.test(userAgent);
+  const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+  
   const supported = isHttps ? await ar.supported() : false;
 
   if (!isHttps) {
     setSupportMsg("🔒 HTTPSでアクセスしてください（カメラ/ARの権限に必要です）。<br/>ローカル開発は <code>vite</code> の https オプションや、Netlify/Vercel デプロイを推奨。");
   } else if (!supported) {
-    setSupportMsg("ℹ️ この端末/ブラウザは WebXR の <code>immersive-ar</code> をサポートしていません。最新の Chrome/Edge/AndroidまたはiOS Safari(17+) をお試しください。");
+    let deviceInfo = "";
+    if (isIOS) {
+      deviceInfo = "iOS Safari 17+ が必要です。現在のiOSバージョンを確認してください。";
+    } else if (isAndroid) {
+      deviceInfo = "Android Chrome 81+ が必要です。Chromeを最新版に更新してください。";
+    } else {
+      deviceInfo = "デスクトップブラウザではWebARは動作しません。モバイル端末でアクセスしてください。";
+    }
+    
+    setSupportMsg(`ℹ️ WebAR非対応: ${deviceInfo}<br/>対応ブラウザ: iOS Safari 17+, Android Chrome 81+`);
   } else {
     setSupportMsg("✅ WebXR対応端末です。Start AR を押してカメラ背景のARを開始できます。");
   }
@@ -24,6 +39,12 @@ const ar = new ARController();
       toast("HTTPSでのアクセスが必要です");
       return;
     }
+    
+    if (!supported) {
+      toast("この端末ではWebARは利用できません");
+      return;
+    }
+    
     try {
       await ar.start();
       toggleButtons(true);
