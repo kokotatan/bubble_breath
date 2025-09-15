@@ -26,7 +26,7 @@ const ar = new ARController();
       deviceInfo = "デスクトップブラウザではWebARは動作しません。モバイル端末でアクセスしてください。";
     }
     
-    setSupportMsg(`ℹ️ WebAR非対応: ${deviceInfo}<br/>対応ブラウザ: iOS Safari 17+, Android Chrome 81+`);
+    setSupportMsg(`ℹ️ WebAR非対応: ${deviceInfo}<br/>対応ブラウザ: iOS Safari 17+, Android Chrome 81+<br/><br/>デモモード: カメラアクセスを試してみてください`);
   } else {
     setSupportMsg("✅ WebXR対応端末です。Start AR を押してカメラ背景のARを開始できます。");
   }
@@ -41,7 +41,16 @@ const ar = new ARController();
     }
     
     if (!supported) {
-      toast("この端末ではWebARは利用できません");
+      toast("WebAR非対応ですが、デモモードでカメラアクセスを試します");
+      // デモモードでカメラアクセスを試す
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        toast("カメラアクセス成功！WebAR非対応のため、通常のカメラ表示になります");
+        // カメラストリームを停止
+        stream.getTracks().forEach(track => track.stop());
+      } catch (e) {
+        toast("カメラアクセスが拒否されました");
+      }
       return;
     }
     
