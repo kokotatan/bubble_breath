@@ -5,7 +5,7 @@ export class ARController {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
-  private xrRefSpace: XRReferenceSpace | null = null;
+  // private xrRefSpace: any = null; // 未使用のためコメントアウト
   private onAnimationFrame?: number;
   private container?: HTMLElement;
 
@@ -55,9 +55,9 @@ export class ARController {
     this.renderer.xr.setReferenceSpaceType("local"); // or "local-floor"
     await this.renderer.xr.setSession(session);
 
-    this.xrRefSpace = await session.requestReferenceSpace("local");
+    // this.xrRefSpace = await session.requestReferenceSpace("local");
     // レンダーループ
-    const render = (_time: number, _frame?: XRFrame) => {
+    const render = (_time: number, _frame?: any) => {
       this.renderer.render(this.scene, this.camera);
     };
     this.onAnimationFrame = this.renderer.setAnimationLoop(render) as unknown as number;
