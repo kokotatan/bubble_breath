@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>bubble_breath</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main id="app">
+      <header class="topbar">
+        <h1>bubble_breath</h1>
+      </header>
+
+      <section class="hero">
+        <p class="lead">
+          WebARの準備ができたら、下のボタンからARを開始します。
+        </p>
+
+        <button id="startBtn" class="btn-primary">Start AR</button>
+        <button id="endBtn" class="btn-ghost" hidden>End Session</button>
+
+        <div id="supportMsg" class="support"></div>
+      </section>
+
+      <!-- Three.js用キャンバスはJS側で生成 -->
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
