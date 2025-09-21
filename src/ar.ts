@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { BreathDetector } from "./breath";
+import { BubbleSystem } from "./bubbles";
 
 // ARセッションとThree.jsの最小実装（カメラ背景をARに）
 export class ARController {
@@ -8,6 +10,11 @@ export class ARController {
   // private xrRefSpace: any = null; // 未使用のためコメントアウト
   private onAnimationFrame?: number;
   private container?: HTMLElement;
+  
+  // 息吹き検出とシャボン玉システム
+  private breathDetector!: BreathDetector;
+  private bubbleSystem!: BubbleSystem;
+  private isBreathEnabled = false;
 
   async supported(): Promise<boolean> {
     // HTTPS 必須、WebXRが使えるかチェック
@@ -44,6 +51,13 @@ export class ARController {
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 0.25);
     this.scene.add(light);
 
+    // シャボン玉システム初期化
+    this.bubbleSystem = new BubbleSystem(this.scene);
+    
+    // 息吹き検出システム初期化
+    this.breathDetector = new BreathDetector();
+    this.setupBreathDetection();
+
     window.addEventListener("resize", this.onResize);
 
     // WebXR AR セッション開始
@@ -58,6 +72,11 @@ export class ARController {
     // this.xrRefSpace = await session.requestReferenceSpace("local");
     // レンダーループ
     const render = (_time: number, _frame?: any) => {
+      // シャボン玉システム更新
+      if (this.bubbleSystem) {
+        this.bubbleSystem.update();
+      }
+      
       this.renderer.render(this.scene, this.camera);
     };
     this.onAnimationFrame = this.renderer.setAnimationLoop(render) as unknown as number;
@@ -71,6 +90,17 @@ export class ARController {
       this.renderer.setAnimationLoop(null as any);
       this.onAnimationFrame = undefined;
     }
+    
+    // 息吹き検出を停止
+    if (this.breathDetector) {
+      this.breathDetector.stop();
+    }
+    
+    // シャボン玉をクリア
+    if (this.bubbleSystem) {
+      this.bubbleSystem.clearAll();
+    }
+    
     window.removeEventListener("resize", this.onResize);
     if (this.container && this.renderer?.domElement?.parentElement === this.container) {
       this.container.remove();
@@ -88,4 +118,57 @@ export class ARController {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   };
+
+  // 息吹き検出のセットアップ
+  private async setupBreathDetection(): Promise<void> {
+    try {
+      await this.breathDetector.start();
+      this.isBreathEnabled = true;
+      
+      // 息吹き検出時のコールバック
+      this.breathDetector.onBreath((intensity: number) => {
+        if (this.bubbleSystem) {
+          // カメラの前方にシャボン玉を生成
+          const cameraPosition = this.camera.position.clone();
+          const cameraDirection = new THREE.Vector3(0, 0, -1);
+          cameraDirection.applyQuaternion(this.camera.quaternion);
+          
+          this.bubbleSystem.createBubblesFromBreath(
+            cameraPosition,
+            intensity,
+            cameraDirection
+          );
+        }
+      });
+      
+      console.log('息吹き検出が開始されました');
+    } catch (error) {
+      console.error('息吹き検出の開始に失敗:', error);
+      this.isBreathEnabled = false;
+    }
+  }
+
+  // 息吹き検出の有効/無効切り替え
+  toggleBreathDetection(): boolean {
+    if (this.isBreathEnabled) {
+      this.breathDetector.stop();
+      this.isBreathEnabled = false;
+      return false;
+    } else {
+      this.setupBreathDetection();
+      return true;
+    }
+  }
+
+  // 息吹き検出の感度設定
+  setBreathSensitivity(sensitivity: number): void {
+    if (this.breathDetector) {
+      this.breathDetector.setSensitivity(sensitivity);
+    }
+  }
+
+  // シャボン玉の数を取得
+  getBubbleCount(): number {
+    return this.bubbleSystem ? this.bubbleSystem.getBubbleCount() : 0;
+  }
 }

@@ -24,6 +24,22 @@
         <button id="endBtn" class="btn-ghost" hidden>End Session</button>
 
         <div id="supportMsg" class="support"></div>
+
+        <!-- 息吹き検出コントロール -->
+        <div id="breathControls" class="breath-controls" hidden>
+          <div class="control-group">
+            <label for="breathToggle">息吹き検出</label>
+            <button id="breathToggle" class="btn-toggle">ON</button>
+          </div>
+          <div class="control-group">
+            <label for="sensitivitySlider">感度</label>
+            <input type="range" id="sensitivitySlider" min="0.1" max="1" step="0.1" value="0.5">
+            <span id="sensitivityValue">0.5</span>
+          </div>
+          <div class="bubble-info">
+            <span>シャボン玉: <span id="bubbleCount">0</span>個</span>
+          </div>
+        </div>
       </section>
 
       <!-- Three.js用キャンバスはJS側で生成 -->
